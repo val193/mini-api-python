@@ -31,23 +31,28 @@ def read_csv_from_gcs():
 def append_row_to_csv_in_gcs(new_data):
     bucket = storage_client.bucket(GCS_BUCKET_NAME)
     blob = bucket.blob(GCS_FILE_NAME)
-    
 
-    # Lire l’existant
-    content = blob.download_as_text()
-    reader = csv.DictReader(io.StringIO(content))
-    rows = list(reader)
-    
-    # Ajouter la ligne
+    rows = []
+    fieldnames = list(new_data.keys())
+
+    # Si le fichier existe, on le lit
+    if blob.exists():
+        content = blob.download_as_text()
+        reader = csv.DictReader(io.StringIO(content))
+        rows = list(reader)
+        fieldnames = reader.fieldnames or fieldnames
+
+    # Ajouter la nouvelle ligne
     rows.append(new_data)
-    
-    # Réécrire
+
+    # Réécriture du fichier complet
     output = io.StringIO()
-    writer = csv.DictWriter(output, fieldnames=reader.fieldnames or new_data.keys())
+    writer = csv.DictWriter(output, fieldnames=fieldnames)
     writer.writeheader()
     writer.writerows(rows)
 
     blob.upload_from_string(output.getvalue(), content_type="text/csv")
+
 
 # Endpoints Flask
 app = Flask(__name__)
