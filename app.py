@@ -18,6 +18,11 @@ storage_client = storage.Client()
 def read_csv_from_gcs():
     bucket = storage_client.bucket(GCS_BUCKET_NAME)
     blob = bucket.blob(GCS_FILE_NAME)
+
+      # Vérifie si le fichier existe
+    if not blob.exists():
+        return []  # Renvoie une liste vide si le fichier n'existe pas encore
+    
     content = blob.download_as_text()
     reader = csv.DictReader(io.StringIO(content))
     return list(reader)
@@ -27,6 +32,7 @@ def append_row_to_csv_in_gcs(new_data):
     bucket = storage_client.bucket(GCS_BUCKET_NAME)
     blob = bucket.blob(GCS_FILE_NAME)
     
+
     # Lire l’existant
     content = blob.download_as_text()
     reader = csv.DictReader(io.StringIO(content))
@@ -45,6 +51,7 @@ def append_row_to_csv_in_gcs(new_data):
 
 # Endpoints Flask
 app = Flask(__name__)
+app.debug = True
 
 @app.route("/hello")
 def hello():
@@ -52,7 +59,8 @@ def hello():
 
 @app.route("/status")
 def status():
-    return jsonify({"server_time": datetime().isoformat()})
+    return jsonify({"server_time": datetime.now().isoformat()})
+
 
 @app.route("/data", methods=["GET"])
 def get_data():
