@@ -5,6 +5,7 @@ from datetime import datetime
 import os
 import csv
 import io
+from vertex_utils import generate_joke_with_vertex_ai  # Importe ta fonction
 
 # Variables de configuration
 GCS_BUCKET_NAME = "mini-api-python-bucket"
@@ -84,5 +85,16 @@ def post_data():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route('/joke', methods=['GET'])
+def joke():
+    joke = generate_joke_with_vertex_ai()  # Appelle ta fonction
+    if joke:
+        return jsonify({"joke": joke})
+    else:
+        return jsonify({"error": "Erreur lors de la génération de la blague"}), 500
+
+
+
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0", port=8080)
+
